@@ -1,9 +1,8 @@
-FROM node:20-alpine AS node
+FROM node:16-alpine AS node
 
 FROM alpine:3.18
 
-RUN apk update && \
-    apk upgrade && \
+RUN apk update upgrade && \
     apk add git && \
     apk add ca-certificates && \
     apk add curl
@@ -20,17 +19,13 @@ COPY --from=node /opt/yarn* /opt/yarn
 RUN ln -vfns /opt/yarn/bin/yarn /usr/local/bin/yarn
 RUN ln -vfns /opt/yarn/bin/yarnpkg /usr/local/bin/yarnpkg
 
-# install python3 for node parcel
-RUN apk add --no-cache python3 py3-pip
-
+# npm run parcel dependancy
+RUN apk add --update --no-cache py-pip make g++ util-linux
 
 WORKDIR /app
 COPY . /app
-RUN npm install 2>&1 && \
-    npm install -g node-gyp && \
-    npm install libxmljs
+RUN npm ci
 
 EXPOSE 1234
-
-ENTRYPOINT while :; do echo 'Press <CTRL+C> to exit.'; sleep 1; done
+ENTRYPOINT npm run start
 
